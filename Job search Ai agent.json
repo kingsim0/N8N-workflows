@@ -1,0 +1,239 @@
+{
+  "name": "Job search Ai agent",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Start by saying 'hi'\n![Button](https://i.imgur.com/PrIBJI6.png)",
+        "height": 149,
+        "width": 150
+      },
+      "id": "5592c045-6718-4c4e-9961-ce67a251b6df",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        180,
+        -40
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Send me new job openings for my selected roles and locations.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a job search agent.\n\nSearch for NEW job postings in the last 24 hours for the roles and locations below.\n\nOnly include postings that match the role keywords and do NOT include excluded keywords.\n\nReturn results as JSON ONLY (no extra text).\n\nRoles (keywords):\n\nDevOps Intern\n\nAI/ML Engineer Intern\n\nSaas Intern\n\nCloud Engineer Intern\n\nLocations:\n\nAlbany, NY\n\nUtica, NY\n\nSyracuse, NY\n\nRemote (US)\n\nMust-have keywords (at least 1): Docker, Linux, CI/CD, Terraform, Azure, AWS, Cloud, N8N\nExclude keywords: Senior, Staff, Principal, 5+ years, 7+ years\n\nIf there are no new matches, return:\n{ \"results\": [] }"
+        }
+      },
+      "id": "41174c8a-6ac8-42bd-900e-ca15196600c5",
+      "name": "Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        580,
+        20
+      ],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        540,
+        240
+      ],
+      "id": "9b2c4918-dbe5-4cff-889f-acad9d01a86b",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "s7ryordPx4W6Yc2Q",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        340,
+        20
+      ],
+      "id": "3182d567-a7f9-49cb-b4ae-1d646bff786b",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"results\": [\n    {\n      \"title\": \"string\",\n      \"company\": \"string\",\n      \"location\": \"string\",\n      \"employment_type\": \"string\",\n      \"posted_date\": \"string\",\n      \"url\": \"string\",\n      \"why_match\": \"string\"\n    }\n  ]\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        760,
+        220
+      ],
+      "id": "befcfb1c-fde6-4e60-bf67-e3eaa7a72897",
+      "name": "Structured Output Parser",
+      "notes": "“Return ONLY valid JSON”\n\n“results can be empty array”"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        560,
+        -140
+      ],
+      "id": "eb2b3e4d-7ccb-4475-a70e-e65b9b1526ac",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "sendTo": "Simeonboucher557@gmail.com",
+        "subject": "=New job matches ({{ $json.results.length }})",
+        "message": "=Here are new matches in the last 24 hours:  {{ $json.results.map(j => `• ${j.title} — ${j.company} (${j.location})   ${j.url}   Why match: ${j.why_match} `).join(\"\\n\\n\") }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        960,
+        20
+      ],
+      "id": "59c2b4a4-cdc4-45a7-802c-c5eb7e04ce19",
+      "name": "Send a message",
+      "webhookId": "c916ea50-1e63-4fab-849c-dc3dc1558ace",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2Nt1zUeX517KtfBV",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "[{\"role\":\"user\",\"content\":\"...\"}]",
+        "model": "sonar",
+        "messages": {
+          "message": [
+            {}
+          ]
+        },
+        "options": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.perplexityTool",
+      "typeVersion": 1,
+      "position": [
+        740,
+        -200
+      ],
+      "id": "44974ebf-0865-4d8b-a5cd-25eb33a51224",
+      "name": "Message a model in Perplexity",
+      "credentials": {
+        "perplexityApi": {
+          "id": "HJyclbIif23c1dY5",
+          "name": "Perplexity account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model in Perplexity": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ae93168e-1153-4425-b756-c3e9c2b25ad2",
+  "meta": {
+    "templateId": "self-building-ai-agent",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "411fd8052f53f68b8fda85295ac93ec66452c21ab12bf352e589a167b966cd82"
+  },
+  "id": "p74542JHGTUh2IQ8",
+  "tags": []
+}
