@@ -1,2 +1,1 @@
-YouTube Video Generation and Posting Ai Agent Built in N8N.
-I’ve built an N8N automation workflow that creates and posts a short-form video for youtube. It gets information from a spreadsheet of the topic, description, summary and video details. Then creates and edits the visuals for the video from JsontoVideo, adds music from the audio files from the spreadsheet, and then posts on YouTube 
+A self-hosted, Dockerized AI job search agent that automatically finds and alerts you about new job openings based on custom roles, locations, and skills. The system uses n8n to orchestrate scheduled workflows, integrates the Perplexity AI API for intelligent job discovery, deduplicates previously seen listings, and sends email notifications using OAuth 2.0.
